@@ -22,7 +22,7 @@ object AvroGenerator extends AutoPlugin {
                           excludeFilter: FileFilter): Set[java.io.File] = {
 
     def includeFile(file: File): Boolean =
-      includeFilter.accept(file) || !excludeFilter.accept(file)
+      includeFilter.accept(file) && !excludeFilter.accept(file)
 
     for (avscFile <- AvscFileSorter.sortSchemaFiles((srcDir ** "*.avsc").get) if includeFile(avscFile)) {
       log.info("Compiling AVSC %s".format(avscFile))
