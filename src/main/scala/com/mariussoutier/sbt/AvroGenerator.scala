@@ -1,11 +1,15 @@
 package com.mariussoutier.sbt
 
+import java.io.File
+
 import sbt._
 import Keys._
 import sbt.plugins.JvmPlugin
 import avrohugger.Generator
 import avrohugger.filesorter.{AvdlFileSorter, AvscFileSorter}
 import avrohugger.format.SpecificRecord
+
+import scala.collection.mutable.ListBuffer
 
 object AvroGenerator extends AutoPlugin {
 
@@ -21,30 +25,38 @@ object AvroGenerator extends AutoPlugin {
                           includeFilter: FileFilter,
                           excludeFilter: FileFilter): Set[java.io.File] = {
 
-    def includeFile(file: File): Boolean =
-      includeFilter.accept(file) && !excludeFilter.accept(file)
+    val allFiles = listFiles(srcDir, includeFilter, excludeFilter, recursive = true)
 
-    for (avscFile <- AvscFileSorter.sortSchemaFiles((srcDir ** "*.avsc").get) if includeFile(avscFile)) {
-      log.info("Compiling AVSC %s".format(avscFile))
-      generator.fileToFile(avscFile, target.getPath)
-    }
-
-    for (avdlFile <- AvdlFileSorter.sortSchemaFiles((srcDir ** "*.avdl").get) if includeFile(avdlFile)) {
-      log.info("Compiling Avro IDL %s".format(avdlFile))
-      generator.fileToFile(avdlFile, target.getPath)
-    }
-
-    for (avroFile <- (srcDir ** "*.avro").get if includeFile(avroFile)) {
-      log.info("Compiling Avro datafile %s".format(avroFile))
-      generator.fileToFile(avroFile, target.getPath)
-    }
-
-    for (protocolFile <- (srcDir ** "*.avpr").get if includeFile(protocolFile)) {
-      log.info("Compiling Avro protocol %s".format(protocolFile))
-      generator.fileToFile(protocolFile, target.getPath)
+    for (file <- allFiles) {
+      log.info("Compiling %s".format(file))
+      generator.fileToFile(file, target.getPath)
     }
 
     (target ** ("*.java"|"*.scala")).get.toSet
+  }
+
+  def listFiles(inputDirectory: File,
+                includeFilter: FileFilter,
+                excludeFilter: FileFilter,
+                recursive: Boolean): Seq[File] = {
+    import Implicits._
+
+    def includeFile(file: File): Boolean =
+      includeFilter.accept(file) && !excludeFilter.accept(file)
+
+    val allFiles = inputDirectory.listFiles().filter(file => includeFile(file))
+    val schemaFiles = new ListBuffer[File]()
+
+    schemaFiles ++= allFiles.withSuffix(".avsc").sorted(AvscFileSorter.sortSchemaFiles)
+    schemaFiles ++= allFiles.withSuffix(".avdl").sorted(AvdlFileSorter.sortSchemaFiles)
+    schemaFiles ++= allFiles.withSuffix(".avpr")
+    schemaFiles ++= allFiles.withSuffix(".avro")
+
+    if (recursive) {
+      schemaFiles ++= allFiles.filter { _.isDirectory }.flatMap { listFiles(_, includeFilter, excludeFilter, recursive) }
+    }
+
+    schemaFiles
   }
 
   import AvroGeneratorKeys._
