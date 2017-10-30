@@ -25,7 +25,7 @@ object AvroGenerator extends AutoPlugin {
                           includeFilter: FileFilter,
                           excludeFilter: FileFilter): Set[java.io.File] = {
 
-    val allFiles = listFiles(srcDir, includeFilter, excludeFilter, recursive = true)
+    val allFiles = listFiles(srcDir, log, includeFilter, excludeFilter, recursive = true)
 
     for (file <- allFiles) {
       log.info("Compiling %s".format(file))
@@ -36,6 +36,7 @@ object AvroGenerator extends AutoPlugin {
   }
 
   def listFiles(inputDirectory: File,
+                log: Logger,
                 includeFilter: FileFilter,
                 excludeFilter: FileFilter,
                 recursive: Boolean): Seq[File] = {
@@ -44,25 +45,34 @@ object AvroGenerator extends AutoPlugin {
     def includeFile(file: File): Boolean =
       includeFilter.accept(file) && !excludeFilter.accept(file)
 
-    val allFiles = inputDirectory.listFiles().filter(file => includeFile(file))
-    val schemaFiles = new ListBuffer[File]()
+    if (inputDirectory.exists()) {
+      val allFiles = inputDirectory.listFiles().filter(file => includeFile(file))
+      val schemaFiles = new ListBuffer[File]()
 
-    schemaFiles ++= allFiles.withSuffix(".avsc").sorted(AvscFileSorter.sortSchemaFiles)
-    schemaFiles ++= allFiles.withSuffix(".avdl").sorted(AvdlFileSorter.sortSchemaFiles)
-    schemaFiles ++= allFiles.withSuffix(".avpr")
-    schemaFiles ++= allFiles.withSuffix(".avro")
+      schemaFiles ++= allFiles.withSuffix(".avsc").sorted(AvscFileSorter.sortSchemaFiles)
+      schemaFiles ++= allFiles.withSuffix(".avdl").sorted(AvdlFileSorter.sortSchemaFiles)
+      schemaFiles ++= allFiles.withSuffix(".avpr")
+      schemaFiles ++= allFiles.withSuffix(".avro")
 
-    if (recursive) {
-      schemaFiles ++= allFiles.filter { _.isDirectory }.flatMap { listFiles(_, includeFilter, excludeFilter, recursive) }
+      if (recursive) {
+        schemaFiles ++= allFiles
+          .filter(_.isDirectory)
+          .flatMap(listFiles(_, log, includeFilter, excludeFilter, recursive))
+      }
+
+      schemaFiles
+    } else {
+      log.error(s"Directory $inputDirectory doesn't exist")
+      Seq.empty
     }
-
-    schemaFiles
   }
 
   import AvroGeneratorKeys._
 
   override def projectSettings: Seq[Def.Setting[_]] = super.projectSettings ++ Seq(
     sourceDirectory in Avro := (resourceManaged in Compile).value / "avro",
+    includeFilter in Avro := AllPassFilter,
+    excludeFilter in Avro := NothingFilter,
     generateSpecific := {
       generateCaseClasses(
         new Generator(SpecificRecord),
@@ -72,9 +82,7 @@ object AvroGenerator extends AutoPlugin {
         (includeFilter in Avro).value,
         (excludeFilter in Avro).value
       ).toSeq
-    },
-    includeFilter in Avro := AllPassFilter,
-    excludeFilter in Avro := NothingFilter
+    }
   )
 }
 
