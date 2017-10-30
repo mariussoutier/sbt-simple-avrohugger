@@ -7,10 +7,10 @@ Right now only supports generating specific records.
 
 ## Installation
 
-Add this to `plugins.sbt`:
+Add this to `plugins.sbt` (use Avrohugger 0.17):
 
 ```
-addSbtPlugin("com.mariussoutier.sbt" % "sbt-simple-avrohugger" % "0.9.3")
+addSbtPlugin("com.mariussoutier.sbt" % "sbt-simple-avrohugger" % "0.9.4")
 ```
 
 ## Usage
