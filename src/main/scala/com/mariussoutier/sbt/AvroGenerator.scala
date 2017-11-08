@@ -46,16 +46,17 @@ object AvroGenerator extends AutoPlugin {
       includeFilter.accept(file) && !excludeFilter.accept(file)
 
     if (inputDirectory.exists()) {
-      val allFiles = inputDirectory.listFiles().filter(file => includeFile(file))
+      val directoryFilesAndFolders = inputDirectory.listFiles()
       val schemaFiles = new ListBuffer[File]()
 
-      schemaFiles ++= allFiles.withSuffix(".avsc").sorted(AvscFileSorter.sortSchemaFiles)
-      schemaFiles ++= allFiles.withSuffix(".avdl").sorted(AvdlFileSorter.sortSchemaFiles)
-      schemaFiles ++= allFiles.withSuffix(".avpr")
-      schemaFiles ++= allFiles.withSuffix(".avro")
+      val directoryFiles = directoryFilesAndFolders.filter(file => includeFile(file))
+      schemaFiles ++= directoryFiles.withSuffix(".avsc").sorted(AvscFileSorter.sortSchemaFiles)
+      schemaFiles ++= directoryFiles.withSuffix(".avdl").sorted(AvdlFileSorter.sortSchemaFiles)
+      schemaFiles ++= directoryFiles.withSuffix(".avpr")
+      schemaFiles ++= directoryFiles.withSuffix(".avro")
 
       if (recursive) {
-        schemaFiles ++= allFiles
+        schemaFiles ++= directoryFilesAndFolders
           .filter(_.isDirectory)
           .flatMap(listFiles(_, log, includeFilter, excludeFilter, recursive))
       }
