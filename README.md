@@ -10,7 +10,7 @@ Right now only supports generating specific records.
 Add this to `plugins.sbt` (uses Avrohugger 0.17):
 
 ```
-addSbtPlugin("com.mariussoutier.sbt" % "sbt-simple-avrohugger" % "0.9.5")
+addSbtPlugin("com.mariussoutier.sbt" % "sbt-simple-avrohugger" % "0.9.6")
 ```
 
 ## Usage
