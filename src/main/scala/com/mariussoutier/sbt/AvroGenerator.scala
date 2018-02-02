@@ -7,7 +7,7 @@ import Keys._
 import sbt.plugins.JvmPlugin
 import avrohugger.Generator
 import avrohugger.filesorter.{AvdlFileSorter, AvscFileSorter}
-import avrohugger.format.SpecificRecord
+import avrohugger.format.{Scavro, SpecificRecord, Standard}
 
 import scala.collection.mutable.ListBuffer
 
@@ -83,6 +83,26 @@ object AvroGenerator extends AutoPlugin {
         (includeFilter in Avro).value,
         (excludeFilter in Avro).value
       ).toSeq
+    },
+    generateStandard := {
+      generateCaseClasses(
+        new Generator(Standard),
+        (sourceDirectory in Avro).value,
+        (sourceManaged in Compile).value / "avro",
+        streams.value.log,
+        (includeFilter in Avro).value,
+        (excludeFilter in Avro).value
+      ).toSeq
+    },
+    generateScavro := {
+      generateCaseClasses(
+        new Generator(Scavro),
+        (sourceDirectory in Avro).value,
+        (sourceManaged in Compile).value / "avro",
+        streams.value.log,
+        (includeFilter in Avro).value,
+        (excludeFilter in Avro).value
+      ).toSeq
     }
   )
 }
@@ -92,5 +112,7 @@ object AvroGeneratorKeys {
   val Avro = config("avro")
 
   val generateSpecific = taskKey[Seq[java.io.File]]("Generate specific record case classes")
+  val generateStandard = taskKey[Seq[java.io.File]]("Generate standard record case classes")
+  val generateScavro = taskKey[Seq[java.io.File]]("Generate Scavro record case classes")
 
 }
