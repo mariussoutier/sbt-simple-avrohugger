@@ -86,7 +86,7 @@ object AvroGenerator extends AutoPlugin {
     },
     generateStandard := {
       generateCaseClasses(
-        new Generator(Standard),
+        new Generator(Standard, avroScalaCustomEnumStyle = Map("enum" -> "java enum")),
         (sourceDirectory in Avro).value,
         (sourceManaged in Compile).value / "avro",
         streams.value.log,
