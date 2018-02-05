@@ -14,6 +14,6 @@ bintrayOrganization in bintray := None
 bintrayRepository := "sbt-plugins"
 
 libraryDependencies ++= Seq(
-  "com.julianpeeters" %% "avrohugger-core" % "0.17.0",
-  "com.julianpeeters" %% "avrohugger-filesorter" % "0.17.0"
+  "com.julianpeeters" %% "avrohugger-core" % "0.18.0",
+  "com.julianpeeters" %% "avrohugger-filesorter" % "0.18.0"
 )
