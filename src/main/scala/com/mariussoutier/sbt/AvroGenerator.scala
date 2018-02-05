@@ -8,7 +8,6 @@ import sbt.plugins.JvmPlugin
 import avrohugger.Generator
 import avrohugger.filesorter.{AvdlFileSorter, AvscFileSorter}
 import avrohugger.format.{Scavro, SpecificRecord, Standard}
-import avrohugger.types.JavaEnum
 
 import scala.collection.mutable.ListBuffer
 
