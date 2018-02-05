@@ -8,6 +8,7 @@ import sbt.plugins.JvmPlugin
 import avrohugger.Generator
 import avrohugger.filesorter.{AvdlFileSorter, AvscFileSorter}
 import avrohugger.format.{Scavro, SpecificRecord, Standard}
+import avrohugger.types.JavaEnum
 
 import scala.collection.mutable.ListBuffer
 
@@ -86,7 +87,7 @@ object AvroGenerator extends AutoPlugin {
     },
     generateStandard := {
       generateCaseClasses(
-        new Generator(Standard, avroScalaCustomEnumStyle = Map("enum" -> "java enum")),
+        new Generator(Standard),
         (sourceDirectory in Avro).value,
         (sourceManaged in Compile).value / "avro",
         streams.value.log,
